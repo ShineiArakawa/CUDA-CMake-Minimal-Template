@@ -1,5 +1,5 @@
 <p align="center">
-  <span style="font-size: 200%;">
+  <span style="font-size: 500%;">
   　<b>
         CUDA-CMake-Minimal-Template
   　</b>
