@@ -1,8 +1,14 @@
+#include <00/functional.cuh>
+#include <common/GUI.hpp>
+#include <common/image.hpp>
 #include <iostream>
 
-#include <00/functional.cuh>
-#include <DearImGUI.hpp>
-#include <image.hpp>
+static gui::FrameBuffer sceneBuffer(640, 480);
+
+void window_size_callback(GLFWwindow *window, int width, int height) {
+  glViewport(0, 0, width, height);
+  sceneBuffer.RescaleFrameBuffer(width, height);
+}
 
 int main(int argc, char **argv) {
   std::cout << "Hello world!" << std::endl;
@@ -13,10 +19,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-
-  GLFWwindow *window = glfwCreateWindow(640, 480, "test", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(1280, 960, "test", NULL, NULL);
 
   if (window == NULL) {
     glfwTerminate();
@@ -25,6 +28,7 @@ int main(int argc, char **argv) {
   }
 
   glfwMakeContextCurrent(window);
+  gladLoadGL(glfwGetProcAddress);
   glfwSwapInterval(1);
 
   // Setup Dear ImGui context
@@ -40,12 +44,15 @@ int main(int argc, char **argv) {
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init();
 
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
   std::string imgFilePath =
-      "/home/shinaraka/Projects/CUDA_Training/data/image_1.jpg";
+      "../data/image_1.jpg";
   GLuint textureID;
   common::loadTexture(imgFilePath, textureID);
+
+  glfwSetWindowSizeCallback(window, window_size_callback);
 
   std::cout << "Start window loop !" << std::endl;
   while (!glfwWindowShouldClose(window)) {
@@ -59,11 +66,25 @@ int main(int argc, char **argv) {
     ImGui::NewFrame();
 
     {
+      sceneBuffer.Bind();
+
+      sceneBuffer.Unbind();
+    }
+
+    {
       // rendering our geometries
-      //   ImGui::BeginChild("GameRender");
-      //   ImVec2 wsize = ImGui::GetWindowSize();
-      //   ImGui::Image((ImTextureID)textureID, wsize, ImVec2(0, 1), ImVec2(1,
-      //   0)); ImGui::EndChild();
+      ImGui::Begin("Scene");
+      {
+        ImGui::BeginChild("GameRender");
+
+        ImGui::Image(
+            (ImTextureID)sceneBuffer.getFrameTexture(),
+            ImGui::GetContentRegionAvail(),
+            ImVec2(0, 1),
+            ImVec2(1, 0));
+      }
+      ImGui::EndChild();
+      ImGui::End();
     }
 
     {

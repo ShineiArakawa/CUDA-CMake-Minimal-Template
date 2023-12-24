@@ -3,12 +3,12 @@ project(CUDA_Training_00 LANGUAGES CUDA CXX)
 set(LIB_PROJECT_NAME CUDA_Training_00_kernel)
 set(EXE_PROJECT_NAME CUDA_Training_00_exe)
 
-############################## CUDA Kernel ##############################
+# ############################# CUDA Kernel ##############################
 add_library(
     ${LIB_PROJECT_NAME}
     STATIC
     "functional.cu"
-    ${PROJECT_INCLUDE_DIR}/01/functional.cuh
+    ${PROJECT_INCLUDE_DIR}/00/functional.cuh
 )
 
 target_include_directories(
@@ -21,10 +21,15 @@ target_include_directories(
     ${GLFW_INCLUDE_DIR}
 )
 
+target_link_libraries(
+    ${LIB_PROJECT_NAME}
+    ${CMAKE_CUDA_RUNTIME_LIBRARY}
+)
+
 target_compile_options(${LIB_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_86,code=sm_86>)
-    
+
 target_compile_features(${LIB_PROJECT_NAME} PUBLIC cxx_std_17)
-    
+
 set_target_properties(
     ${LIB_PROJECT_NAME}
     PROPERTIES
@@ -32,17 +37,18 @@ set_target_properties(
     ON
 )
 
-############################## Executable C++ ##############################
+# ############################# Executable C++ ##############################
 add_executable(
     ${EXE_PROJECT_NAME}
     "main.cpp"
     ${IMGUI_SOURCE_FILES}
     $<TARGET_OBJECTS:${LIB_PROJECT_NAME}>
+    $<TARGET_OBJECTS:Common>
 )
 
 target_include_directories(
     ${EXE_PROJECT_NAME}
-    PUBLIC 
+    PUBLIC
     ${PROJECT_INCLUDE_DIR}
     ${STB_INCLUDE_DIR}
     ${IMGUI_INCLUDE_DIR}
@@ -53,10 +59,19 @@ target_include_directories(
 
 target_link_libraries(
     ${EXE_PROJECT_NAME}
-    ${GLFW_LIB_DIR}/libglfw3.a
-    X11
-    ${LIB_GLAD}
+    glfw
+    glad
+    OpenGL::GL
+    OpenGL::GLU
+    ${CMAKE_CUDA_RUNTIME_LIBRARY}
 )
+
+if(UNIX)
+    target_link_libraries(
+        ${EXE_PROJECT_NAME}
+        X11
+    )
+endif(UNIX)
 
 target_compile_options(${EXE_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_86,code=sm_86>)
 
@@ -69,3 +84,7 @@ set_target_properties(
     ON
 )
 
+add_custom_command(
+  TARGET ${EXE_PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${EXE_PROJECT_NAME}> ${CMAKE_SOURCE_DIR}/bin/
+)

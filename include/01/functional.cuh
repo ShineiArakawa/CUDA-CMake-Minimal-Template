@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cuda_runtime.h>
-#include <image.hpp>
+#include <common/image.hpp>
 #include <string>
 
 namespace utils {

@@ -1,13 +1,12 @@
 #define _USE_MATH_DEFINES
-#include <cmath>
-
-#include <cassert>
-#include <chrono>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include <iostream>
 
 #include <00/functional.cuh>
+#include <cassert>
+#include <chrono>
+#include <cmath>
+#include <iostream>
 
 namespace utils {
 int divRoundUp(int value, int radix) { return (value + radix - 1) / radix; };
@@ -83,12 +82,11 @@ std::string Matrix::to_string() {
             std::to_string(1) + "\n";
   return buffer;
 }
-} // namespace utils
+}  // namespace utils
 
 namespace cKernel {
 __global__ void convertToGrayKernel(uchar3 *inPixel,
                                     unsigned char *outinPixel) {
-
   int index = blockIdx.x * blockDim.x + threadIdx.x;
 
   outinPixel[index] = (unsigned char)(0.299f * inPixel[index].x +
@@ -135,7 +133,7 @@ __global__ void warpKernel(const utils::Matrix transMat, const uchar4 *input,
   }
 }
 
-} // namespace cKernel
+}  // namespace cKernel
 
 namespace cLaunch {
 common::Image cudaWarpTransform(common::Image image, utils::Matrix &transMat) {
@@ -347,4 +345,4 @@ common::Image cudaInvertTransform(common::Image image) {
 
   return outImage;
 }
-} // namespace cLaunch
+}  // namespace cLaunch

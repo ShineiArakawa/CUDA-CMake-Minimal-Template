@@ -24,23 +24,11 @@ find_package(OpenMP)
 find_package(OpenGL REQUIRED)
 
 ##### GLFW
-set(GLFW_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/glfw-3.3.9/include)
-set(GLFW_LIB_DIR ${PROJECT_EXTERNAL_DIR}/glfw-3.3.9/lib)
+set(GLFW_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/glfw/include)
 
 ##### GLAD
 set(GLAD_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/glad/include)
 
-set(LIB_GLAD glad)
-add_library(
-  ${LIB_GLAD}
-  STATIC
-  ${PROJECT_EXTERNAL_DIR}/glad/src/glad.c
-)
-target_include_directories(
-  ${LIB_GLAD}
-  PUBLIC
-  ${GLAD_INCLUDE_DIR}
-)
 
 ##### Dear Imgui
 set(IMGUI_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/imgui)
@@ -48,7 +36,9 @@ set(IMGUI_SOURCE_DIR ${PROJECT_EXTERNAL_DIR}/imgui)
 set(IMGUI_BACKENDS_DIR ${IMGUI_SOURCE_DIR}/backends)
 
 ##### X11
+if (UNIX)
 find_package(X11 REQUIRED)
+endif(UNIX)
 
 set(
   IMGUI_SOURCE_FILES
@@ -67,6 +57,7 @@ set(STB_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/stb)
 
 ##### Add subdirectory
 add_subdirectory("src")
+add_subdirectory("external")
 
 ##################################################
 ##### Message ####################################

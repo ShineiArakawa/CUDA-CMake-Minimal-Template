@@ -38,6 +38,7 @@ add_executable(
     "main.cpp"
     ${IMGUI_SOURCE_FILES}
     $<TARGET_OBJECTS:${LIB_PROJECT_NAME}>
+    $<TARGET_OBJECTS:Common>
 )
 
 target_include_directories(
@@ -53,11 +54,18 @@ target_include_directories(
 
 target_link_libraries(
     ${EXE_PROJECT_NAME}
-    ${GLFW_LIB_DIR}/libglfw3.a
-    X11
-    ${LIB_GLAD}
-    ${OPENGL_LIBRARIES}
+    glfw
+    glad
+    OpenGL::GL
+    OpenGL::GLU
 )
+
+if (UNIX)
+target_link_libraries(
+    ${EXE_PROJECT_NAME}
+    X11
+)
+endif(UNIX)
 
 target_compile_options(${EXE_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_86,code=sm_86>)
 
@@ -70,3 +78,7 @@ set_target_properties(
     ON
 )
 
+add_custom_command(
+  TARGET ${EXE_PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${EXE_PROJECT_NAME}> ${CMAKE_SOURCE_DIR}/bin/
+)

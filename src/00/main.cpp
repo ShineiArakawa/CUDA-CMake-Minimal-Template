@@ -1,15 +1,15 @@
 #include <string>
 
 #include <00/functional.cuh>
-#include <image.hpp>
+#include <common/image.hpp>
 
 int main(int argc, char **argv) {
   utils::deviceInfo();
 
   std::string filePath =
-      "/home/shinaraka/Projects/CUDA_Training/data/ShineiArakawa_cropped.JPG";
+      "D:/GitHub/CUDA-CMake-Minimal-Template/data/image_1.jpg";
   std::string filePathOut =
-      "/home/shinaraka/Projects/CUDA_Training/data/output.jpg";
+      "D:/GitHub/CUDA-CMake-Minimal-Template/data/output.jpg";
 
   common::Image image = common::Image::fromFile(filePath);
 

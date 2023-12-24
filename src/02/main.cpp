@@ -2,10 +2,7 @@
 #include <cstdio>
 #include <string>
 
-#include <glad/glad.h>
-
-#define GLFW_INCLUDE_GLU // GLUライブラリを使用するのに必要 / Required to use
-                         // GLU
+#define GLFW_INCLUDE_GLU
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION // 画像のロードに必要 / Required to load images
@@ -20,7 +17,7 @@ static const double PI = 4.0 * atan(1.0); // 円周率の定義 / Circular const
 static float theta = 0.0f;
 
 static const std::string TEX_FILE =
-    "/home/shinaraka/Projects/CUDA_Training/data/image_1.jpg";
+    "../data/image_1.jpg";
 static GLuint textureId = 0u;
 
 // clang-format off
