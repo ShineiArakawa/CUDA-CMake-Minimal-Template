@@ -15,7 +15,7 @@
     ✅ CUDA kernel samples<br>
     ✅ CMake build tool<br>
     ✅ CUDA-C++ separable build<br>
-    ✅ Bundle <a href= "https://github.com/Dav1dde/glad" >glad</a>, <a href= "https://www.glfw.org/" >glfw</a>, <a href= "https://www.glfw.org/" >Dear ImGui</a>, and <a href= "https://github.com/nothings/stb" >stb image</a><br>
+    ✅ Bundle <a href= "https://github.com/Dav1dde/glad" >glad</a>, <a href= "https://www.glfw.org/" >glfw</a>, <a href= "https://github.com/g-truc/glm" >glm</a>, <a href= "https://www.glfw.org/" >Dear ImGui</a>, and <a href= "https://github.com/nothings/stb" >stb image</a><br>
     🔲 Support CUDA-X libraries<br>
     🔲 Support CUDA OpenGL Interop libraries<br>
 </ul>
