@@ -7,6 +7,7 @@
 #include <backends/imgui_impl_glut.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 // clang-format on
 #include <string>
 

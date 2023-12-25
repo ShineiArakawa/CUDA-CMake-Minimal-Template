@@ -19,6 +19,7 @@ target_include_directories(
     ${IMGUI_INCLUDE_DIR}
     ${GLAD_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
+    ${GLM_INCLUDE_DIR}
 )
 
 target_compile_options(${LIB_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_86,code=sm_86>)
@@ -50,6 +51,7 @@ target_include_directories(
     ${GLFW_INCLUDE_DIR}
     ${GLAD_INCLUDE_DIR}
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+    ${GLM_INCLUDE_DIR}
 )
 
 target_link_libraries(

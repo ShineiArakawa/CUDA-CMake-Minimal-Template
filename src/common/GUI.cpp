@@ -41,6 +41,8 @@ unsigned int FrameBuffer::getFrameTexture() {
 }
 
 void FrameBuffer::RescaleFrameBuffer(float width, float height) {
+  glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+
   glBindTexture(GL_TEXTURE_2D, _texture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -50,6 +52,8 @@ void FrameBuffer::RescaleFrameBuffer(float width, float height) {
   glBindRenderbuffer(GL_RENDERBUFFER, _rbo);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _rbo);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   _width = width;
   _height = height;
