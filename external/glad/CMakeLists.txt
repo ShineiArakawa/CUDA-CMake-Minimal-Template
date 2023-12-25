@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.24)
 
 project(glad)
 
 add_library(
   ${PROJECT_NAME}
   STATIC
-  "src/glad.c"
+  "src/gl.c"
 )
 
 target_include_directories(
   ${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
   "include"
 )

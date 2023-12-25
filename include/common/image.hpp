@@ -1,4 +1,5 @@
 #pragma once
+#ifndef __INCLUDE_COMMON_HPP__
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_MSC_SECURE_CRT
@@ -8,7 +9,6 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#include <common/GUI.hpp>
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
@@ -45,5 +45,7 @@ class Image {
   uint8_t *convertToBytePixels();
 };
 
-void loadTexture(const std::string &filePath, GLuint &texID);
 }  // namespace common
+
+#define __INCLUDE_COMMON_HPP__
+#endif

@@ -29,7 +29,6 @@ set(GLFW_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/glfw/include)
 ##### GLAD
 set(GLAD_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/glad/include)
 
-
 ##### Dear Imgui
 set(IMGUI_INCLUDE_DIR ${PROJECT_EXTERNAL_DIR}/imgui)
 set(IMGUI_SOURCE_DIR ${PROJECT_EXTERNAL_DIR}/imgui)
@@ -37,6 +36,7 @@ set(IMGUI_BACKENDS_DIR ${IMGUI_SOURCE_DIR}/backends)
 
 ##### X11
 if (UNIX)
+# find_package(CUDA REQUIRED)
 find_package(X11 REQUIRED)
 endif(UNIX)
 
@@ -84,7 +84,6 @@ message("#  PROJECT_INCLUDE_DIR              : ${PROJECT_INCLUDE_DIR}")
 message("#  PROJECT_EXTERNAL_DIR             : ${PROJECT_EXTERNAL_DIR}")
 message("# ")
 message("#  GLFW_INCLUDE_DIR                 : ${GLFW_INCLUDE_DIR}")
-message("#  GLFW_LIB_DIR                     : ${GLFW_LIB_DIR}")
 message("#  GLAD_INCLUDE_DIR                 : ${GLAD_INCLUDE_DIR}")
 message("#  IMGUI_INCLUDE_DIR                : ${IMGUI_INCLUDE_DIR}")
 message("#  IMGUI_SOURCE_DIR                 : ${IMGUI_SOURCE_DIR}")

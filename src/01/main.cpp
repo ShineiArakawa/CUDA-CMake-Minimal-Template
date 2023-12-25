@@ -2,13 +2,17 @@
 #include <common/GUI.hpp>
 #include <common/image.hpp>
 #include <iostream>
+#include <memory>
 
-static gui::FrameBuffer sceneBuffer(640, 480);
-
-void window_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(0, 0, width, height);
-  sceneBuffer.RescaleFrameBuffer(width, height);
-}
+class SceneBuffer {
+ public:
+  inline static std::shared_ptr<gui::FrameBuffer> frameBuffer;
+  inline static void setFrameBuffer(float width, float height) { SceneBuffer::frameBuffer = std::make_shared<gui::FrameBuffer>(width, height); };
+  inline static void window_size_callback(GLFWwindow *window, int width, int height) {
+    glViewport(0, 0, width, height);
+    SceneBuffer::frameBuffer->RescaleFrameBuffer(width, height);
+  };
+};
 
 int main(int argc, char **argv) {
   std::cout << "Hello world!" << std::endl;
@@ -19,7 +23,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  GLFWwindow *window = glfwCreateWindow(1280, 960, "test", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(1200, 900, "test", NULL, NULL);
 
   if (window == NULL) {
     glfwTerminate();
@@ -27,9 +31,21 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwMakeContextCurrent(window);
-  gladLoadGL(glfwGetProcAddress);
   glfwSwapInterval(1);
+
+  // OpenGL 3.x/4.xの関数をロードする (glfwMakeContextCurrentの後でないといけない)
+  const int version = gladLoadGL(glfwGetProcAddress);
+  if (version == 0) {
+    fprintf(stderr, "Failed to load OpenGL 3.x/4.x libraries!\n");
+    return 1;
+  }
+
+  // バージョンを出力する
+  printf("Load OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -47,12 +63,13 @@ int main(int argc, char **argv) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
-  std::string imgFilePath =
-      "../data/image_1.jpg";
-  GLuint textureID;
-  common::loadTexture(imgFilePath, textureID);
 
-  glfwSetWindowSizeCallback(window, window_size_callback);
+  // std::string imgFilePath = "../data/image_1.jpg";
+  // GLuint textureID;
+  // gui::loadTexture(imgFilePath, textureID);
+
+  SceneBuffer::setFrameBuffer(640, 480);
+  glfwSetWindowSizeCallback(window, SceneBuffer::window_size_callback);
 
   std::cout << "Start window loop !" << std::endl;
   while (!glfwWindowShouldClose(window)) {
@@ -66,11 +83,14 @@ int main(int argc, char **argv) {
     ImGui::NewFrame();
 
     {
-      sceneBuffer.Bind();
+      SceneBuffer::frameBuffer->Bind();
 
-      sceneBuffer.Unbind();
+      SceneBuffer::frameBuffer->Unbind();
     }
 
+    // ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    // ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    // ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiCond_Appearing);
     {
       // rendering our geometries
       ImGui::Begin("Scene");
@@ -78,21 +98,22 @@ int main(int argc, char **argv) {
         ImGui::BeginChild("GameRender");
 
         ImGui::Image(
-            (ImTextureID)sceneBuffer.getFrameTexture(),
+            (ImTextureID)SceneBuffer::frameBuffer->getFrameTexture(),
             ImGui::GetContentRegionAvail(),
             ImVec2(0, 1),
             ImVec2(1, 0));
+
+        ImGui::EndChild();
       }
-      ImGui::EndChild();
       ImGui::End();
     }
 
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiCond_Appearing);
     {
       // render your GUI
       ImGui::Begin("Demo window");
-
       ImGui::Button("Hello!");
-
       ImGui::End();
     }
 

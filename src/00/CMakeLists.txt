@@ -17,13 +17,8 @@ target_include_directories(
     ${PROJECT_INCLUDE_DIR}
     ${STB_INCLUDE_DIR}
     ${IMGUI_INCLUDE_DIR}
-    ${GLAD_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
-)
-
-target_link_libraries(
-    ${LIB_PROJECT_NAME}
-    ${CMAKE_CUDA_RUNTIME_LIBRARY}
+    ${GLAD_INCLUDE_DIR}
 )
 
 target_compile_options(${LIB_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_86,code=sm_86>)
@@ -60,10 +55,9 @@ target_include_directories(
 target_link_libraries(
     ${EXE_PROJECT_NAME}
     glfw
-    glad
     OpenGL::GL
     OpenGL::GLU
-    ${CMAKE_CUDA_RUNTIME_LIBRARY}
+    $<TARGET_OBJECTS:glad>
 )
 
 if(UNIX)
@@ -85,6 +79,6 @@ set_target_properties(
 )
 
 add_custom_command(
-  TARGET ${EXE_PROJECT_NAME} POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${EXE_PROJECT_NAME}> ${CMAKE_SOURCE_DIR}/bin/
+    TARGET ${EXE_PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${EXE_PROJECT_NAME}> ${CMAKE_SOURCE_DIR}/bin/
 )

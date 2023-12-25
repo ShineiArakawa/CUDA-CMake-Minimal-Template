@@ -19,7 +19,6 @@ target_include_directories(
     ${IMGUI_INCLUDE_DIR}
     ${GLAD_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
-    ${PROJECT_EXTERNAL_DIR}/glfw/deps
 )
 
 target_compile_options(${LIB_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_86,code=sm_86>)
@@ -50,16 +49,15 @@ target_include_directories(
     ${IMGUI_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
     ${GLAD_INCLUDE_DIR}
-    ${PROJECT_EXTERNAL_DIR}/glfw/deps
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 )
 
 target_link_libraries(
     ${EXE_PROJECT_NAME}
     glfw
-    glad
     OpenGL::GL
     OpenGL::GLU
+    $<TARGET_OBJECTS:glad>
 )
 
 if (UNIX)

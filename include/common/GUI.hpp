@@ -1,18 +1,19 @@
-#ifndef __INCLUDE_GUI__
+#pragma once
+#ifndef __INCLUDE_GUI_HPP__
 
+#include <common/OpenGL.hpp>
 // clang-format off
-#include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_glut.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
 // clang-format on
+#include <string>
 
 namespace gui {
 class FrameBuffer {
  public:
+  FrameBuffer(){};
   FrameBuffer(float width, float height);
   ~FrameBuffer();
   unsigned int getFrameTexture();
@@ -27,7 +28,9 @@ class FrameBuffer {
   GLuint _texture;
   GLuint _rbo;
 };
+
+void loadTexture(const std::string &filePath, GLuint &texID);
 }  // namespace gui
 
-#define __INCLUDE_GUI__
+#define __INCLUDE_GUI_HPP__
 #endif

@@ -1,4 +1,5 @@
 #include <common/GUI.hpp>
+#include <common/image.hpp>
 #include <iostream>
 
 namespace gui {
@@ -61,4 +62,32 @@ void FrameBuffer::Bind() const {
 void FrameBuffer::Unbind() const {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
+void loadTexture(const std::string &filePath, GLuint &texID) {
+  int texWidth, texHeight, channels;
+  // Texture
+  // ============================================================================================
+  unsigned char *bytesTexture = stbi_load(
+      filePath.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
+  if (!bytesTexture) {
+    fprintf(stderr, "Failed to load image file: %s\n", filePath.c_str());
+    exit(1);
+  }
+
+  glGenTextures(1, &texID);
+  glBindTexture(GL_TEXTURE_2D, texID);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texWidth, texHeight, 0, GL_RGBA,
+               GL_UNSIGNED_BYTE, bytesTexture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  stbi_image_free(bytesTexture);
+};
+
 }  // namespace gui
