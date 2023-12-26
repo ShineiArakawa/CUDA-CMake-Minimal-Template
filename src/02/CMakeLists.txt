@@ -3,8 +3,6 @@ project(CUDA_Training_02 LANGUAGES CUDA CXX)
 set(LIB_PROJECT_NAME CUDA_Training_02_kernel)
 set(EXE_PROJECT_NAME CUDA_Training_02_exe)
 
-add_compile_options("-O2")
-
 # ############################# CUDA Kernel ##############################
 add_library(
     ${LIB_PROJECT_NAME}

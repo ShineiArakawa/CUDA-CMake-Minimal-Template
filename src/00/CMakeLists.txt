@@ -58,6 +58,7 @@ target_link_libraries(
     OpenGL::GL
     OpenGL::GLU
     $<TARGET_OBJECTS:glad>
+    ${CMAKE_CUDA_RUNTIME_LIBRARY}
 )
 
 if(UNIX)

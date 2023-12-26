@@ -14,10 +14,10 @@ int main(int argc, char **argv) {
 
   common::Image transformedImage;
   {
-    // transformedImage = cudaGrayScaleTransform(image);
+    // transformedImage = cLaunch::cudaGrayScaleTransform(image);
   }
   {
-    // transformedImage = cudaInvertTransform(image);
+    // transformedImage = cLaunch::cudaInvertTransform(image);
   }
   {
     utils::Matrix tranMat = utils::Matrix::getRotMat(90.0);

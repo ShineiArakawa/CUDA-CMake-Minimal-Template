@@ -8,6 +8,16 @@
 #include <cmath>
 #include <iostream>
 
+#define CUDA_ERROR_CHECK(ans) \
+  { gpuAssert((ans), __FILE__, __LINE__); }
+
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true) {
+  if (code != cudaSuccess) {
+    fprintf(stderr, "GPUassert: : %s %s %d\n", cudaGetErrorString(code), file, line);
+    if (abort) exit(code);
+  }
+}
+
 namespace utils {
 int divRoundUp(int value, int radix) { return (value + radix - 1) / radix; };
 
@@ -84,15 +94,13 @@ std::string Matrix::to_string() {
 }
 }  // namespace utils
 
-namespace cKernel {
-__global__ void convertToGrayKernel(uchar3 *inPixel,
-                                    unsigned char *outinPixel) {
+__global__ void convertToGrayKernel(uchar3 *inPixel, unsigned char *outinPixel) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-  outinPixel[index] = (unsigned char)(0.299f * inPixel[index].x +
-                                      0.587f * (float)inPixel[index].y +
-                                      0.114f * (float)inPixel[index].z);
+  outinPixel[index] = (unsigned char)(0.299f * inPixel[index].x + 0.587f * (float)inPixel[index].y + 0.114f * (float)inPixel[index].z);
 }
+
+namespace cKernel {
 
 __global__ void invertKernel(uchar3 *inPixel, uchar3 *outinPixel) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -102,9 +110,7 @@ __global__ void invertKernel(uchar3 *inPixel, uchar3 *outinPixel) {
   outinPixel[index].z = 255 - inPixel[index].z;
 }
 
-__global__ void warpKernel(const utils::Matrix transMat, const uchar4 *input,
-                           uchar4 *output, const int width, const int height,
-                           const int pitch) {
+__global__ void warpKernel(const utils::Matrix transMat, const uchar4 *input, uchar4 *output, const int width, const int height, const int pitch) {
   const int x = blockDim.x * blockIdx.x + threadIdx.x;
   const int y = blockDim.y * blockIdx.y + threadIdx.y;
 
@@ -132,7 +138,6 @@ __global__ void warpKernel(const utils::Matrix transMat, const uchar4 *input,
     output[outIndex] = value;
   }
 }
-
 }  // namespace cKernel
 
 namespace cLaunch {
@@ -140,6 +145,7 @@ common::Image cudaWarpTransform(common::Image image, utils::Matrix &transMat) {
   const int height = image.getHeight();
   const int width = image.getWidth();
   const int channels = image.getChannles();
+  std::cout << "(width, height) = (" << width << ", " << height << ")" << std::endl;
   assert(channels == 3);
 
   // Data format convertion
@@ -163,59 +169,49 @@ common::Image cudaWarpTransform(common::Image image, utils::Matrix &transMat) {
     // Allocate device memory
     size_t hostPitch = sizeof(uchar4) * width;
     size_t devicePitch;
-    cudaMallocPitch(&deviceImageIn, &devicePitch, sizeof(uchar4) * width,
-                    height);
-    cudaMallocPitch(&deviceImageOut, &devicePitch, sizeof(uchar4) * width,
-                    height);
+    CUDA_ERROR_CHECK(cudaMallocPitch(&deviceImageIn, &devicePitch, sizeof(uchar4) * width, height));
+    CUDA_ERROR_CHECK(cudaMallocPitch(&deviceImageOut, &devicePitch, sizeof(uchar4) * width, height));
     const size_t pitchesInPixel = devicePitch / sizeof(uchar4);
 
     // Transfer (CPU → GPU)
-    cudaMemcpy2D(deviceImageIn, devicePitch, hostImageIn, hostPitch, hostPitch,
-                 height, cudaMemcpyHostToDevice);
+    CUDA_ERROR_CHECK(cudaMemcpy2D(deviceImageIn, devicePitch, hostImageIn, hostPitch, hostPitch, height, cudaMemcpyHostToDevice));
 
-    std::vector<int> nBlocksPower = {6, 7, 8, 9, 10};
-    std::vector<std::vector<int>> blockPiars;
-    for (int power : nBlocksPower) {
-      for (int i = 0; i < power + 1; i++) {
-        blockPiars.push_back(
-            {(int)std::pow(2, i), (int)std::pow(2, power - i)});
+    // Grid search
+    // std::vector<int> nBlocksPower = {6, 7, 8, 9, 10};
+    // std::vector<std::vector<int>> blockPiars;
+    // for (int power : nBlocksPower) {
+    //   for (int i = 0; i < power + 1; i++) {
+    //     blockPiars.push_back(
+    //         {(int)std::pow(2, i), (int)std::pow(2, power - i)});
+    //   }
+    // }
+
+    dim3 blockDim(128, 4);
+    dim3 gridDim(utils::divRoundUp(width, blockDim.x), utils::divRoundUp(height, blockDim.y));
+
+    // Launch
+    std::chrono::system_clock::time_point start, end;
+    start = std::chrono::system_clock::now();
+    {
+      int nTimes = std::pow(2, 17);
+      for (int i = 0; i < nTimes; i++) {
+        cKernel::warpKernel<<<gridDim, blockDim>>>(invTransMat, deviceImageIn, deviceImageOut, width, height, pitchesInPixel);
+
+        // Error check
+        CUDA_ERROR_CHECK(cudaGetLastError());
       }
     }
-
-    for (auto blockPiar : blockPiars) {
-      dim3 blockDim(blockPiar[0], blockPiar[1]);
-      dim3 gridDim(utils::divRoundUp(width, blockDim.x),
-                   utils::divRoundUp(height, blockDim.y));
-
-      // Launch
-      std::chrono::system_clock::time_point start, end;
-      start = std::chrono::system_clock::now();
-      {
-        int nTimes = std::pow(2, 17);
-        for (int i = 0; i < nTimes; i++) {
-          cKernel::warpKernel<<<gridDim, blockDim>>>(invTransMat, deviceImageIn,
-                                                     deviceImageOut, width,
-                                                     height, pitchesInPixel);
-        }
-      }
-      end = std::chrono::system_clock::now();
-      double elapsed =
-          std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-              .count();
-      std::cout << "blockDim: (" << std::to_string(blockDim.x) << ", "
-                << std::to_string(blockDim.y) << "), Kernel Execution Time: "
-                << std::to_string(elapsed / 1000.0) << " [sec]" << std::endl;
-    }
+    end = std::chrono::system_clock::now();
+    double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "blockDim: (" << std::to_string(blockDim.x) << ", "
+              << std::to_string(blockDim.y) << "), Kernel Execution Time: "
+              << std::to_string(elapsed / 1000.0) << " [sec]" << std::endl;
 
     // Transfer (GPU → CPU)
-    cudaMemcpy2D(hostImageOut, hostPitch, deviceImageOut, devicePitch,
-                 hostPitch, height, cudaMemcpyDeviceToHost);
+    CUDA_ERROR_CHECK(cudaMemcpy2D(hostImageOut, hostPitch, deviceImageOut, devicePitch, hostPitch, height, cudaMemcpyDeviceToHost));
 
     // Error check
-    cudaError_t cudaError = cudaGetLastError();
-    if (cudaError != 0) {
-      std::cout << "Raised CUDA Error !" << std::endl;
-    }
+    CUDA_ERROR_CHECK(cudaGetLastError());
   }
 
   common::Image outImage = common::Image();
@@ -259,18 +255,17 @@ common::Image cudaGrayScaleTransform(common::Image image) {
   unsigned char *deviceImageGray;
   int dataSizeRGB = sizeof(uchar3) * width * height;
   int dataSizeGray = sizeof(unsigned char) * width * height;
-  cudaMalloc((void **)&deviceImageRGB, dataSizeRGB);
-  cudaMalloc((void **)&deviceImageGray, dataSizeGray);
+  CUDA_ERROR_CHECK(cudaMalloc((void **)&deviceImageRGB, dataSizeRGB));
+  CUDA_ERROR_CHECK(cudaMalloc((void **)&deviceImageGray, dataSizeGray));
 
   // Transfer (CPU → GPU)
-  cudaMemcpy(deviceImageRGB, hostImageRGB, dataSizeRGB, cudaMemcpyHostToDevice);
+  CUDA_ERROR_CHECK(cudaMemcpy(deviceImageRGB, hostImageRGB, dataSizeRGB, cudaMemcpyHostToDevice));
 
-  cKernel::convertToGrayKernel<<<width * height, 1>>>(deviceImageRGB,
-                                                      deviceImageGray);
+  convertToGrayKernel<<<width * height, 1>>>(deviceImageRGB, deviceImageGray);
+  CUDA_ERROR_CHECK(cudaGetLastError());
 
   // Transfer(GPU → CPU)
-  cudaMemcpy(hostImageGray, deviceImageGray, dataSizeGray,
-             cudaMemcpyDeviceToHost);
+  CUDA_ERROR_CHECK(cudaMemcpy(hostImageGray, deviceImageGray, dataSizeGray, cudaMemcpyDeviceToHost));
 
   common::Image grayImage = common::Image();
   grayImage.newImage(width, height, channels);
